@@ -1,41 +1,57 @@
+/*** Constants ***/
+
+RPI = [ 55, 85, 1 ];
+RELAYS = [ 32.5, 46, 17 ];
+
 FUDGE = 0.25;  // extra space for parts to fit
 WALL_THK = 2; // how thick the walls are
-BOX_OUTER = [60,100,40];  // how big the box is
 FLANGE_R = 10;
 FLANGE_SCREW_R = 2;
 
-function box_inner() = [BOX_OUTER[0]-WALL_THK*2, BOX_OUTER[1]-WALL_THK*2, BOX_OUTER[2] ]; 
+BOX_INNER = [ bigger_of(RPI[0], RELAYS[0]) + 10, RPI[1] + RELAYS[1] + 20 , 20 ];
+BOX_OUTER = [ BOX_INNER[0]+WALL_THK*2, BOX_INNER[1]+WALL_THK*2, BOX_INNER[2]+WALL_THK*2 ];
+
+echo(BOX_OUTER);
+echo(BOX_INNER);
+
+/*** Functions ***/
+
+function bigger_of (thing1, thing2) = thing1>thing2 ? thing1 : thing2;
+
+
+/*** Modules, aka parts ***/
 
 module box_lid() {
 // box lid goes over project stuff
   difference() {
     cube(BOX_OUTER);
     union () {
-      translate([WALL_THK,WALL_THK, WALL_THK]) cube(   box_inner());
-      translate([BOX_OUTER[0]/2, BOX_OUTER[1]/2, -  WALL_THK/2]) cylinder( WALL_THK*2, FLANGE_SCREW_R, FLANGE_SCREW_R);
+      translate([WALL_THK,WALL_THK, WALL_THK]) cube([ BOX_INNER[0], BOX_INNER[1], BOX_INNER[2]+WALL_THK*2]);
+      translate([BOX_OUTER[0]/2, RPI[1]+10, -  WALL_THK/2]) cylinder( WALL_THK*2, FLANGE_SCREW_R, FLANGE_SCREW_R);
     }
   } 
 }
 
 
 
-module box_bottom (BOX_OUTER) {
+module box_bottom () {
   // project goes on flat board bottom of box thingy
   box_bottom = [BOX_OUTER[0],BOX_OUTER[1], WALL_THK];
-  box_inner = box_inner();
-  //union () {
+ 
+    translate([-2*WALL_THK, -2*WALL_THK, -WALL_THK]) {
     cube(box_bottom); 
-    // make lip
     difference() {
-      translate([ WALL_THK, WALL_THK, WALL_THK]) cube([box_inner[0]-FUDGE, box_inner[1]-FUDGE, WALL_THK ]);
-      translate([ WALL_THK*2, WALL_THK*2, WALL_THK+  FUDGE]) cube([ box_inner[0]-(2*WALL_THK+FUDGE),box_inner[1]-(2*WALL_THK+FUDGE), WALL_THK ]);
+      translate([ WALL_THK, WALL_THK, WALL_THK]) cube([BOX_INNER[0]-FUDGE, BOX_INNER[1]-FUDGE, WALL_THK ]);
+      translate([ WALL_THK*2, WALL_THK*2, WALL_THK+  FUDGE]) cube([ BOX_INNER[0]-(2*WALL_THK+FUDGE),BOX_INNER[1]-(2*WALL_THK+FUDGE), WALL_THK ]);
     }
-  //}
+    translate([0, BOX_OUTER[1]-FLANGE_R*2, 0]) rotate([0,0,90]) screw_flange( );
+    translate([0, FLANGE_R*2, 0]) rotate([0,0,90]) screw_flange( );
+
+    translate([BOX_OUTER[0], BOX_OUTER[1]-FLANGE_R*2, 0]) rotate([0,0,270]) screw_flange( );
+    translate([BOX_OUTER[0], FLANGE_R*2, 0]) rotate([0,0,270]) screw_flange( );
+  }
   
 }
-
-box_bottom = [BOX_OUTER[0],BOX_OUTER[1], WALL_THK];
-cube(box_bottom);
 
 module screw_flange ( ) {
    translate([0,FLANGE_R,0]) difference() {
@@ -57,19 +73,24 @@ module standoff (height, rad, screw_rad) {
     }   
 }
 
+module corner_standoff ( dimensions ) {
+ translate([ -0.5*WALL_THK, -0.5*WALL_THK,0]) difference () {
+  cube( dimensions );
+  union () {
+    translate([WALL_THK,WALL_THK  ,-0.5*WALL_THK]) cube( [dimensions[0]+WALL_THK, dimensions[1]+WALL_THK, dimensions[2]+WALL_THK ]);  
+    }
+    translate([ 0.5*WALL_THK,0.5*WALL_THK, dimensions[2]-WALL_THK]) cube([dimensions[0], dimensions[1], WALL_THK*2]);
+  }
+}
+/*** Laying out the stuff ***/
+
 to_the_right = BOX_OUTER[0]+FLANGE_R*2+3*WALL_THK;
 
 // Box Bottom & Top
 box_bottom();
 translate([to_the_right, 0, 0]) box_lid();
 
-// Flanges
-translate([0, BOX_OUTER[1]-FLANGE_R*2, 0]) rotate([0,0,90]) screw_flange( );
-translate([0, FLANGE_R*2, 0]) rotate([0,0,90]) screw_flange( );
+// Central Standoff Post
+translate([(BOX_INNER[0]-WALL_THK)/2, RPI[1]+10, 0]) standoff (BOX_INNER[2]-WALL_THK,3,1);
 
-translate([BOX_OUTER[0], BOX_OUTER[1]-FLANGE_R*2, 0]) rotate([0,0,270]) screw_flange( );
-translate([BOX_OUTER[0], FLANGE_R*2, 0]) rotate([0,0,270]) screw_flange( );
-
-// Standoff Post
-translate([BOX_OUTER[0]/2, BOX_OUTER[1]/2, 0]) standoff (BOX_OUTER[2]-WALL_THK,3,1);
-
+translate([0, 100, 0]) corner_standoff([5,5,5 ]);
