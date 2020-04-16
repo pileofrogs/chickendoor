@@ -12,7 +12,7 @@ STH = 5; // standoff height
 RPI_HOLE_1 = [45,21,0];
 RPI_HOLE_2 = [20,77,0];
 WIRE_EXIT_R = 4;
-ZIP_TIE_TONGUE = 10;
+ZIP_TIE_TONGUE = [10,10,WALL_THK];
 
 /*
 NEED
@@ -102,7 +102,9 @@ module screw_flange ( ) {
 module zip_tie (dims) {
   difference() {
     cube(dims);
-    translate(
+    translate([0,0,0]) cube(dims);
+  }
+}
 
 
 module standoff (height, rad, screw_rad) {
@@ -169,6 +171,6 @@ translate([rpi_at[0], rpi_at[1], 0]) {
   translate(RPI_HOLE_2) standoff(STH, STANDOFF_R, STANDOFF_SCREW_R);
 }
 
-translate([200,0,0]) zip_tie( dims );
+translate([200,0,0]) zip_tie( ZIP_TIE_TONGUE );
 
 
