@@ -1,14 +1,14 @@
-barrel_r = 3;
-pin_r = barrel_r/2;
-ear_width = 5;
+width = 5;
 slop = 1;
+pin_r = 2;
 
 act_r = 10.5;
 act_hole_r = 3;
 act_len = 100;
 act_hole_d_to_end = 6;
 act_hole_shaft_len = 50;
-hinge_plate_dims = [act_r*6, act_r*6, 3];
+hinge_plate_dims = [act_r*6, act_r*6, width];
+barrel_r = width+pin_r;
 
 
 $fn = 100;
@@ -34,32 +34,48 @@ module ears ( thickness, rad, hole_rad ) {
 }
 translate([0,0,0.5*act_r]) actuator_piston();
 
-// The flangy ear things around the piston
-translate([0, act_r+ear_width+slop, 0]) rotate([90,0,0]) ears(ear_width, 1.5 * act_r, act_hole_r);
-translate([0, -(act_r+slop), 0]) rotate([90,0,0]) ears(ear_width, 1.5 * act_r, act_hole_r);
-
-// The hinge
-difference () {
-  // plates
-  translate([-hinge_plate_dims[0]/2,-hinge_plate_dims[1]/2,-hinge_plate_dims[2]]) cube([hinge_plate_dims[0]*2, hinge_plate_dims[1] , hinge_plate_dims[2]]);
-  // room for the barrel
-  translate([hinge_plate_dims[0]/2,hinge_plate_dims[1]/2+1, -barrel_r-slop]) rotate([90,0,0]) cylinder(hinge_plate_dims[0]+2,barrel_r+slop,barrel_r+slop);
-  // cut out along the top of the room for the barrel
-  translate([hinge_plate_dims[0]/2-(slop/2), -hinge_plate_dims[1]/2-1, -barrel_r ]) cube([slop, hinge_plate_dims[1]+2,barrel_r+slop]);
+module barrel_cut_out () {
+    cylinder(hinge_plate_dims[0]/3+2*slop, barrel_r+slop, barrel_r+slop);
 }
 
-// where the barrel attaches to the plates
-#translate([hinge_plate_dims[0]/2-barrel_r-slop,-hinge_plate_dims[1]/2,-hinge_plate_dims[2]]) cube([barrel_r+slop, hinge_plate_dims[1]/3-(2*slop/3),hinge_plate_dims[2]]);  
-#translate([hinge_plate_dims[0]/2+(slop/2),-hinge_plate_dims[1]/6,-hinge_plate_dims[2]]){
-  cube([barrel_r+slop, hinge_plate_dims[1]/3-(2*slop/3),hinge_plate_dims[2]]);  
-  cube(slop,20,5);
+module hingetop () {
+  // The flangy ear things around the piston
+  translate([hinge_plate_dims[0]/2, hinge_plate_dims[1]/3-slop, 0]) rotate([90,0,0]) ears(width, 1.5 * act_r, act_hole_r);
+  translate([hinge_plate_dims[0]/2, 2/3*hinge_plate_dims[1]+width+slop, 0]) rotate([90,0,0]) ears(width, 1.5 * act_r, act_hole_r);
+  
+  difference() {
+    union () {
+      // The hinge
+      translate([0,0,-hinge_plate_dims[2]]) cube(hinge_plate_dims);
+  
+      // The barrel
+      translate([hinge_plate_dims[0], 0, -barrel_r]) rotate([270, 0, 0]) 
+      cylinder(hinge_plate_dims[0], barrel_r, barrel_r);
+    }
+    translate([hinge_plate_dims[0], 0, -barrel_r]) rotate([270, 0, 0]) {
+      translate([0,0,-(slop/2)]) cylinder(hinge_plate_dims[0]+2,pin_r,pin_r);
+      #translate([0,0,-(slop/2)])  barrel_cut_out();
+      #translate([0,0, 2/3 * hinge_plate_dims[1]+slop])  barrel_cut_out();
+    }
+  }
+
 }
-#translate([hinge_plate_dims[0]/2-barrel_r-slop,hinge_plate_dims[1]/6,-hinge_plate_dims[2]]) cube([barrel_r+slop, hinge_plate_dims[1]/3-(2*slop/3),hinge_plate_dims[2]]);  
 
-
-translate([hinge_plate_dims[0]/2,-hinge_plate_dims[1]/2, -barrel_r-slop]) rotate([270,0,0]) difference () {
- cylinder(hinge_plate_dims[0],barrel_r,barrel_r);
-  translate([0,0,-1]) cylinder(hinge_plate_dims[0]+2,pin_r,pin_r);
+module hingebottom () {
+  difference () {
+    union () {
+      translate([0,0, -hinge_plate_dims[2]]) cube(hinge_plate_dims);
+      translate([0, 0, -barrel_r]) rotate([270, 0, 0]) 
+        cylinder(hinge_plate_dims[0], barrel_r, barrel_r);
+    }
+    translate([0, 0, -barrel_r]) rotate([270, 0, 0]) {
+      translate([0,0,-(slop/2)]) cylinder(hinge_plate_dims[0]+2,pin_r,pin_r);
+      #translate([0,0, hinge_plate_dims[1]/3+(slop/2)])  barrel_cut_out();
+    }
+  }
 }
 
 
+translate([-hinge_plate_dims[0]/2,-hinge_plate_dims[1]/2,0]) hingetop();
+
+translate([hinge_plate_dims[0]/2+barrel_r*2+2*slop,-hinge_plate_dims[1]/2,0]) hingebottom();

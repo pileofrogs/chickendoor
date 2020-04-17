@@ -22,14 +22,10 @@ Button mount point
 
 Wires
 2 wires for linear actuator
-2 12v power
+1 5mm 12v power
 2 5v power
 2 for pressure sensor
 */
-
-
-
-
 
 $fn=100;
 
