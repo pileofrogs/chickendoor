@@ -32,6 +32,7 @@ class Door (object):
     started_change_at = datetime.datetime.min
     stopped_of = { 'CLOSING': 'CLOSED', 'OPENING' : 'OPEN' }
     reverse_of = None
+    been = { 'timer': { 'opened' : None, 'closed' None }, 'button': { 'opened':None, 'closed': None }}
 
     def __init__ (self, state_file = None ):
         if state_file is None:
@@ -114,12 +115,18 @@ parser.add_argument('--state_file','-s',default=STATE_FILE, type=str)
 args = parser.parse_args()
   
 door = Door(args.state_file)
+mytz = pytz.timezone(here.timezone)
+
+# I need to track openings or somehow keep it from automatically opening all day and closing all night
 
 while (True) :
     door.check_state()
-    suntime = sun(here.observer, date=now(), tzinfo=pytz.timezone(here.timezone))
-
-    print(here.daylight())
+    suntime = sun(here.observer, date=now(), tzinfo=mytz)
+    if now(mytz) > suntime["sunrise"] and now(mytz) <= suntime["sunset"]:
+        print("It's Daytime!")
+    else :
+        print("It's Night!")
+    
     print(f"Ma State Be {door.state}")
     if door.is_transitory():
         print('*')
