@@ -6,6 +6,11 @@ from time import sleep
 from pprint import pprint
 import datetime
 import argparse
+from astral.geocoder import database, lookup
+from astral.sun import sun
+import astral
+import pytz
+
 now = datetime.datetime.now
 
 TRANSITION_TIME = datetime.timedelta(seconds=2) 
@@ -14,8 +19,23 @@ VALID_STATES = ('UNKNOWN','OPEN','CLOSED','OPENING','CLOSING','STOPPED')
 OK_STATES = [ X for X in VALID_STATES if X != 'UNKNOWN']
 TRANSITORY_STATES = ['OPENING','CLOSING']
 
-pprint(VALID_STATES)
-pprint(OK_STATES)
+
+here = lookup('Seattle',database())
+
+pprint(here)
+
+s = sun(here.observer, date=now(), tzinfo=pytz.timezone(here.timezone))
+
+        
+pprint(s)
+
+print(s['dawn'])
+print(s['dawn'].strftime("%c"))
+print(s['dusk'].strftime("%c"))
+print(s['sunrise'].strftime("%c"))
+print(s['sunset'].strftime("%c"))
+
+exit() 
 
 class Door (object):
     statefile = None
