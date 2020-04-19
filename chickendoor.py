@@ -22,6 +22,11 @@ pprint(OK_STATES)
 class Door (object):
     statefile = None
     state = 'UNKNOWN'
+    prior_state = None
+    started_change_at = datetime.datetime.min
+    stopped_of = { 'CLOSING': 'CLOSED', 'OPENING' : 'OPENED' }
+    reverse_of = { 'CLOSING': self.open, 'CLOSED': self.open, 
+            'OPENING':self.close, 'OPENED': self.close }
 
     def __init__ (self, state_file = None ):
         if state_file is None:
@@ -34,11 +39,31 @@ class Door (object):
             handle.close()
         except IOError:
             print(f"Failed to open state file {self.statefile}")
-        return self.state;
+
+    def check_state(self):
+        if self.state not in OK_STATES:
+            self.open()
+
+    def stop_if_time(self):
+        if now - self.started_change_at > TRANSITION_TIME:
+        if not self.is_transetory:
+            return None
+        self.stop()
+        self.set_state(self.stopped_of(self.state))
+
+    def reverse(self):
+        self.reverse_of(self.state)()
+
+    def is_transitory(self):
+        if self.state in TRANSETORY_STATES:
+            return True
+        return False
 
     def set_state(self, new_state):
+        self.prior_state = self.state
         self.state = new_state
-        self.update_state_file(
+        self.update_state_file()
+        self.started_change_at = now()
         
     def open (self):
         print("Opening")
@@ -49,15 +74,14 @@ class Door (object):
         self.set_state('OPENING')
     
     def stop (self):
-        print("Stop!")
+        print("Stop!")`
         self.set_state('STOPPED')
 
-    def 
-    
-    def write_state_file (self):
+    def update_state_file (self):
         with open(self.statefile,'w') as handle:
             handle.write(self.state)
             handle.close()
+
 
 def is_button_pressed ():
     if random() > 0.8:
@@ -71,40 +95,20 @@ parser.add_argument('--state_file','-s',default=STATE_FILE, type=str)
 
 args = parser.parse_args()
   
-state_flag = initialize(args.state_file)
+door = Door(args.state_file)
 
 print(f"State is {state_flag}")
 
-started_change_at = datetime.datetime.min
 while (True) :
-    if state_flag not in OK_STATES:
-        door_open()
-        state_flag = 'OPENING'
-        write_state_file(args.state_file,state_flag)
-        started_change_at = now()
-    if state_flag in TRANSITORY_STATES:
+    door.check_state()
+    if door.is_transetory():
         print('*')
-        if now() - started_change_at > TRANSITION_TIME:
-            door_stop()
-            if state_flag == 'OPENING':
-                state_flag = 'OPEN'
-                write_state_file(args.state_file,state_flag)
-            elif state_flag == 'CLOSING':
-                state_flag = 'CLOSED'
-                write_state_file(args.state_file,state_flag)
+        door.stop_if_time()
     if is_button_pressed():
-        if state_flag in TRANSITORY_STATES:
-            door_stop()
+        if door.is_transetory():
+            door.stop()
             sleep(1)
-            if state_flag == 'OPENING':
-                door_close()
-                state_flag = 'CLOSING'
-                write_state_file(args.state_file, state_flag)
-            elif state_flag == 'CLOSING':
-                door_open()
-                state_flag = 'OPENING'
-                write_state_file(args.state_file, state_flag)
-        else:
+        door.reverse()
             
 
 
