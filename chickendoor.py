@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import random
+from random import random
 import gpiozero
 from time import sleep
 from pprint import pprint
@@ -25,13 +25,14 @@ class Door (object):
     prior_state = None
     started_change_at = datetime.datetime.min
     stopped_of = { 'CLOSING': 'CLOSED', 'OPENING' : 'OPENED' }
-    reverse_of = { 'CLOSING': self.open, 'CLOSED': self.open, 
-            'OPENING':self.close, 'OPENED': self.close }
+    reverse_of = None
 
     def __init__ (self, state_file = None ):
         if state_file is None:
             state_file = STATE_FILE
         self.statefile = state_file
+        self.reverse_of = { 'CLOSING': self.open, 'CLOSED': self.open, 
+            'OPENING':self.close, 'OPENED': self.close }
         try:
             handle = open(self.statefile)
             self.set_state(handle.read().rstrip())
@@ -45,8 +46,9 @@ class Door (object):
             self.open()
 
     def stop_if_time(self):
-        if now - self.started_change_at > TRANSITION_TIME:
-        if not self.is_transetory:
+        if now - self.started_change_at < TRANSITION_TIME:
+            return None
+        if not self.is_transitory:
             return None
         self.stop()
         self.set_state(self.stopped_of(self.state))
@@ -55,7 +57,7 @@ class Door (object):
         self.reverse_of(self.state)()
 
     def is_transitory(self):
-        if self.state in TRANSETORY_STATES:
+        if self.state in TRANSITORY_STATES:
             return True
         return False
 
@@ -74,7 +76,7 @@ class Door (object):
         self.set_state('OPENING')
     
     def stop (self):
-        print("Stop!")`
+        print("Stop!")
         self.set_state('STOPPED')
 
     def update_state_file (self):
@@ -85,8 +87,8 @@ class Door (object):
 
 def is_button_pressed ():
     if random() > 0.8:
-        return true
-    return false
+        return True
+    return False
 
 
 
@@ -101,11 +103,11 @@ print(f"State is {state_flag}")
 
 while (True) :
     door.check_state()
-    if door.is_transetory():
+    if door.is_transitory():
         print('*')
         door.stop_if_time()
     if is_button_pressed():
-        if door.is_transetory():
+        if door.is_transitory():
             door.stop()
             sleep(1)
         door.reverse()
