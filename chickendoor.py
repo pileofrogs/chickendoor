@@ -11,31 +11,19 @@ from astral.sun import sun
 import astral
 import pytz
 
+# alias now() to datetime.datetime.now()
 now = datetime.datetime.now
 
+AM_OFFSET = datetime.timedelta(minutes=10)
+PM_OFFSET = datetime.timedelta(minutes=-10)
 TRANSITION_TIME = datetime.timedelta(seconds=2) 
 STATE_FILE = "/run/chickendoor.state"
 VALID_STATES = ('UNKNOWN','OPEN','CLOSED','OPENING','CLOSING','STOPPED')
 OK_STATES = [ X for X in VALID_STATES if X != 'UNKNOWN']
 TRANSITORY_STATES = ['OPENING','CLOSING']
 
-
+# where we is
 here = lookup('Seattle',database())
-
-pprint(here)
-
-s = sun(here.observer, date=now(), tzinfo=pytz.timezone(here.timezone))
-
-        
-pprint(s)
-
-print(s['dawn'])
-print(s['dawn'].strftime("%c"))
-print(s['dusk'].strftime("%c"))
-print(s['sunrise'].strftime("%c"))
-print(s['sunset'].strftime("%c"))
-
-exit() 
 
 class Door (object):
     statefile = None
@@ -77,9 +65,8 @@ class Door (object):
         if state == 'STOPPED':
             state = self.prior_state
         if state == 'UNKNOWN':
-            self.open()
             return None
-        print(self.reverse_of[state])
+        print(f"Reverse is {self.reverse_of[state]}")
         self.reverse_of[state]()
 
     def is_transitory(self):
@@ -129,6 +116,8 @@ door = Door(args.state_file)
 
 while (True) :
     door.check_state()
+    suntime = sun(here.observer, date=now(), tzinfo=pytz.timezone(here.timezone))
+
     if door.is_transitory():
         print('*')
         door.stop_if_time()
