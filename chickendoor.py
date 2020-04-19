@@ -8,13 +8,11 @@ import datetime
 import argparse
 now = datetime.datetime.now
 
-TRANSITION_TIME = datetime.timedelta(seconds=10) 
+TRANSITION_TIME = datetime.timedelta(seconds=2) 
 STATE_FILE = "/run/chickendoor.state"
 VALID_STATES = ('UNKNOWN','OPEN','CLOSED','OPENING','CLOSING','STOPPED')
 OK_STATES = [ X for X in VALID_STATES if X != 'UNKNOWN']
 TRANSITORY_STATES = ['OPENING','CLOSING']
-
-state_flag = 'UNKNOWN'
 
 pprint(VALID_STATES)
 pprint(OK_STATES)
@@ -24,7 +22,7 @@ class Door (object):
     state = 'UNKNOWN'
     prior_state = None
     started_change_at = datetime.datetime.min
-    stopped_of = { 'CLOSING': 'CLOSED', 'OPENING' : 'OPENED' }
+    stopped_of = { 'CLOSING': 'CLOSED', 'OPENING' : 'OPEN' }
     reverse_of = None
 
     def __init__ (self, state_file = None ):
@@ -32,7 +30,7 @@ class Door (object):
             state_file = STATE_FILE
         self.statefile = state_file
         self.reverse_of = { 'CLOSING': self.open, 'CLOSED': self.open, 
-            'OPENING':self.close, 'OPENED': self.close }
+            'OPENING':self.close, 'OPEN': self.close }
         try:
             handle = open(self.statefile)
             self.set_state(handle.read().rstrip())
@@ -46,15 +44,23 @@ class Door (object):
             self.open()
 
     def stop_if_time(self):
-        if now - self.started_change_at < TRANSITION_TIME:
+        if now() - self.started_change_at < TRANSITION_TIME:
             return None
         if not self.is_transitory:
             return None
+        print("--------- TIME ---------")
         self.stop()
-        self.set_state(self.stopped_of(self.state))
+        self.set_state(self.stopped_of[self.prior_state])
 
     def reverse(self):
-        self.reverse_of(self.state)()
+        state = self.state
+        if state == 'STOPPED':
+            state = self.prior_state
+        if state == 'UNKNOWN':
+            self.open()
+            return None
+        print(self.reverse_of[state])
+        self.reverse_of[state]()
 
     def is_transitory(self):
         if self.state in TRANSITORY_STATES:
@@ -62,7 +68,8 @@ class Door (object):
         return False
 
     def set_state(self, new_state):
-        self.prior_state = self.state
+        if self.state != self.prior_state:
+            self.prior_state = self.state
         self.state = new_state
         self.update_state_file()
         self.started_change_at = now()
@@ -87,6 +94,7 @@ class Door (object):
 
 def is_button_pressed ():
     if random() > 0.8:
+        print("********** BUTTON ************")
         return True
     return False
 
@@ -99,8 +107,6 @@ args = parser.parse_args()
   
 door = Door(args.state_file)
 
-print(f"State is {state_flag}")
-
 while (True) :
     door.check_state()
     if door.is_transitory():
@@ -111,10 +117,5 @@ while (True) :
             door.stop()
             sleep(1)
         door.reverse()
-            
-
-
-
-
     sleep(0.5)
         
