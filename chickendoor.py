@@ -118,6 +118,8 @@ door = Door(args.state_file)
 while (True) :
     door.check_state()
     suntime = sun(here.observer, date=now(), tzinfo=pytz.timezone(here.timezone))
+
+    print(here.daylight())
     print(f"Ma State Be {door.state}")
     if door.is_transitory():
         print('*')
