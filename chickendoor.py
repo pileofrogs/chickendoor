@@ -14,16 +14,16 @@ import pytz
 # alias now() to datetime.datetime.now()
 now = datetime.datetime.now
 
-AM_OFFSET = datetime.timedelta(minutes=10)
-PM_OFFSET = datetime.timedelta(minutes=-10)
 TRANSITION_TIME = datetime.timedelta(seconds=2) 
 STATE_FILE = "/run/chickendoor.state"
 VALID_STATES = ('UNKNOWN','OPEN','CLOSED','OPENING','CLOSING','STOPPED')
 OK_STATES = [ X for X in VALID_STATES if X not in ('UNKNOWN','STOPPED') ]
 TRANSITORY_STATES = ['OPENING','CLOSING']
+BUTTON_WAIT = datetime.timedelta(seconds=1)
 
-# where we is
 here = lookup('Seattle',database())
+mytz = pytz.timezone(here.timezone)
+epoch = datetime.datetime.fromtimestamp(0, tz=mytz)
 
 class Door (object):
     statefile = None
@@ -32,7 +32,6 @@ class Door (object):
     started_change_at = datetime.datetime.min
     stopped_of = { 'CLOSING': 'CLOSED', 'OPENING' : 'OPEN' }
     reverse_of = None
-    been = { 'timer': { 'opened' : None, 'closed' None }, 'button': { 'opened':None, 'closed': None }}
 
     def __init__ (self, state_file = None ):
         if state_file is None:
@@ -102,39 +101,57 @@ class Door (object):
 
 
 def is_button_pressed ():
-    if random() > 0.8:
+    if random() > 0.95:
         print("********** BUTTON ************")
         return True
     return False
 
-
-
 parser = argparse.ArgumentParser(description='Chicken Door!')
 parser.add_argument('--state_file','-s',default=STATE_FILE, type=str)
+parser.add_argument('--sunup_offset','-u',default=0, type=int)
+parser.add_argument('--sundown_offset','-d',default=0, type=int)
+
+#PM_OFFSET = datetime.timedelta(minutes=-10)
 
 args = parser.parse_args()
   
 door = Door(args.state_file)
-mytz = pytz.timezone(here.timezone)
 
-# I need to track openings or somehow keep it from automatically opening all day and closing all night
+door.check_state()
 
+last_minute = 0
+last_press_at = epoch
 while (True) :
-    door.check_state()
-    suntime = sun(here.observer, date=now(), tzinfo=mytz)
-    if now(mytz) > suntime["sunrise"] and now(mytz) <= suntime["sunset"]:
-        print("It's Daytime!")
-    else :
-        print("It's Night!")
-    
-    print(f"Ma State Be {door.state}")
-    if door.is_transitory():
-        print('*')
-        door.stop_if_time()
-    if is_button_pressed():
+    tnow = now(mytz)
+    # we check for button press every loop
+    if is_button_pressed() and tnow - last_press_at > BUTTON_WAIT:
+        last_press_at = tnow
         if door.is_transitory():
             door.stop()
-            sleep(1)
+            sleep(0.5)
         door.reverse()
+    # check progress if we're opening/closing
+    print(f"Ma State Be {door.state}")
+    if door.is_transitory():
+        print('transitioning')
+        door.stop_if_time()
+
+    # We check time-based stuff every minute
+    this_minute = int(tnow.timestamp()/60)
+    if this_minute <= last_minute:
+        sleep(0.5)
+        continue
+    last_minute = this_minute
+    print(f"New stuff at minute {this_minute}")
+    suntime = sun(here.observer, date=tnow)
+    open_at = suntime['sunrise']+args.sunup_offset
+    close_at = suntime['sunset']+args.sundown_offset
+    if tnow > suntime["sunrise"] and tnow <= suntime["sunset"]:
+        print("It's Daytime!")
+        print("close_at")
+    else :
+        print("It's Night!")
+        print("open_at")
+    
     sleep(0.5)
         
