@@ -144,8 +144,8 @@ while (True) :
     last_minute = this_minute
     print(f"New stuff at minute {this_minute}")
     suntime = sun(here.observer, date=tnow)
-    open_at = suntime['sunrise']+args.sunup_offset
-    close_at = suntime['sunset']+args.sundown_offset
+    open_at = suntime['sunrise']+datetime.timedelta(minutes=args.sunup_offset) 
+    close_at = suntime['sunset']+datetime.timedelta(minutes=args.sundown_offset) 
     if tnow > suntime["sunrise"] and tnow <= suntime["sunset"]:
         print("It's Daytime!")
         print("close_at")

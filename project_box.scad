@@ -7,17 +7,14 @@ WALL_THK = 2; // how thick the walls are
 FLANGE_R = 10; // I like the look of it
 FLANGE_SCREW_R = 2.5; // replace with actual screw hole radius
 STANDOFF_R = 3; // Radius of round standoffs
-STANDOFF_SCREW_R = 1.5; // radius of hole in the standoffs
-STH = 5; // standoff height
+STANDOFF_SCREW_R = 1.4; // radius of hole in the standoffs
+STH = 4.5+WALL_THK; // standoff height
 RPI_HOLE_1 = [45,21,0];
 
 RPI_HOLE_SPECS = [54-18-12.5,85.6-25.5-5,0];
 echo(RPI_HOLE_SPECS);
 
 RPI_HOLE_2 = [RPI_HOLE_1[0]-RPI_HOLE_SPECS[0],RPI_HOLE_1[1]+RPI_HOLE_SPECS[1],0];
-
-WIRE_EXIT_R = 4;
-ZIP_TIE_TONGUE = [10,10,WALL_THK];
 
 /*
 NEED
@@ -88,7 +85,7 @@ module box_bottom () {
     translate([BOX_OUTER[0], BOX_OUTER[1]-FLANGE_R*2, 0]) rotate([0,0,270]) screw_flange( );
     translate([BOX_OUTER[0], FLANGE_R*2, 0]) rotate([0,0,270]) screw_flange( );
     translate([xhalf-5, BOX_OUTER[1],0]) zip_tie ([10,10,WALL_THK]);
-    %translate([(xhalf-0.5)/2, 0, 0 ]) cube([1,200,20]);
+    %translate([(xhalf-0.5), 0, 0 ]) cube([1,200,20]);
   }
   
 }
@@ -181,5 +178,5 @@ translate([rpi_at[0], rpi_at[1], 0]) {
   #translate(RPI_HOLE_2) standoff(STH, STANDOFF_R, STANDOFF_SCREW_R);
 }
 
-
+% box_lid();
 
