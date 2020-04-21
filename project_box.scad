@@ -10,7 +10,12 @@ STANDOFF_R = 3; // Radius of round standoffs
 STANDOFF_SCREW_R = 1.5; // radius of hole in the standoffs
 STH = 5; // standoff height
 RPI_HOLE_1 = [45,21,0];
-RPI_HOLE_2 = [20,77,0];
+
+RPI_HOLE_SPECS = [54-18-12.5,85.6-25.5-5,0];
+echo(RPI_HOLE_SPECS);
+
+RPI_HOLE_2 = [RPI_HOLE_1[0]-RPI_HOLE_SPECS[0],RPI_HOLE_1[1]+RPI_HOLE_SPECS[1],0];
+
 WIRE_EXIT_R = 4;
 ZIP_TIE_TONGUE = [10,10,WALL_THK];
 
@@ -27,15 +32,14 @@ Wires
 2 for pressure sensor
 */
 
+WIRE_BUNDLE=(5+2+2+2)/2;
+
 $fn=100;
 
 BOX_INNER = [ bigger_of(RPI[0], RELAYS[0]) + 2*ROOM, RPI[1] + RELAYS[1] + 4*ROOM+2*WALL_THK , bigger_of(RPI[2],RELAYS[2])+STH+ROOM ];
 BOX_OUTER = [ BOX_INNER[0]+WALL_THK*2, BOX_INNER[1]+WALL_THK*2, BOX_INNER[2]+WALL_THK*2 ];
 
 BASE_INNER = [ BOX_INNER[0]-2*WALL_THK, BOX_INNER[1]-2*WALL_THK, BOX_INNER[2] ]; 
-
-echo(BOX_OUTER);
-echo(BOX_INNER);
 
 /*** Functions ***/
 
@@ -52,6 +56,10 @@ module box_lid() {
       translate([WALL_THK,WALL_THK, WALL_THK]) cube([ BOX_INNER[0], BOX_INNER[1], BOX_INNER[2]+WALL_THK*2]);
       translate(standoff_goes) cylinder( WALL_THK*2, FLANGE_SCREW_R, FLANGE_SCREW_R);
     }
+    translate([standoff_goes[0],BOX_OUTER[1]+WALL_THK,BOX_OUTER[2]-WIRE_BUNDLE]) {
+      rotate([90,0,0]) cylinder(WALL_THK*3,WIRE_BUNDLE,WIRE_BUNDLE);
+      translate([-WIRE_BUNDLE,-3*WALL_THK,0]) cube([WIRE_BUNDLE*2,3*WALL_THK,WIRE_BUNDLE+1]);
+    }
   } 
   %translate([-100, standoff_goes[1], 0]) cube([200,0.1,20]);
   %translate([-100, BOX_OUTER[1], 0]) cube([200,0.1,20]);
@@ -62,22 +70,25 @@ module box_lid() {
 }
 
 
-
 module box_bottom () {
   // project goes on flat board bottom of box thingy
   box_bottom = [BOX_OUTER[0],BOX_OUTER[1], WALL_THK];
  
-    translate([-2*WALL_THK, -2*WALL_THK, -WALL_THK]) {
+  translate([-2*WALL_THK, -2*WALL_THK, -WALL_THK]) {
+    xhalf = BASE_INNER[0]/2+2*WALL_THK;
     cube(box_bottom); 
     difference() {
-      translate([ WALL_THK, WALL_THK, WALL_THK]) cube([BOX_INNER[0]-FUDGE, BOX_INNER[1]-FUDGE, WALL_THK ]);
-      translate([ WALL_THK*2, WALL_THK*2, WALL_THK+  FUDGE]) cube([ BOX_INNER[0]-(2*WALL_THK+FUDGE),BOX_INNER[1]-(2*WALL_THK+FUDGE), WALL_THK ]);
+      translate([ WALL_THK+FUDGE/2, WALL_THK+FUDGE/2, 0]) cube([BOX_INNER[0]-FUDGE, BOX_INNER[1]-FUDGE, WALL_THK*2 ]);
+      translate([ WALL_THK*2, WALL_THK*2, -FUDGE]) cube([ BOX_INNER[0]-(2*WALL_THK),BOX_INNER[1]-(2*WALL_THK), 2*WALL_THK+2*FUDGE]);
     }
+    // Flanges
     translate([0, BOX_OUTER[1]-FLANGE_R*2, 0]) rotate([0,0,90]) screw_flange( );
     translate([0, FLANGE_R*2, 0]) rotate([0,0,90]) screw_flange( );
 
     translate([BOX_OUTER[0], BOX_OUTER[1]-FLANGE_R*2, 0]) rotate([0,0,270]) screw_flange( );
     translate([BOX_OUTER[0], FLANGE_R*2, 0]) rotate([0,0,270]) screw_flange( );
+    translate([xhalf-5, BOX_OUTER[1],0]) zip_tie ([10,10,WALL_THK]);
+    %translate([(xhalf-0.5)/2, 0, 0 ]) cube([1,200,20]);
   }
   
 }
@@ -132,12 +143,15 @@ relays_at = [center[0]-RELAYS[0]/2, 3*ROOM + RPI[1], STH];
 rpi_at = [ center[0]-RPI[0]/2, ROOM, STH];
 relays_holders = [STH,STH,STH];
 
+%translate([center[0]-0.5,0,0]) cube([1,200,20]);
+
 echo(BASE_INNER);
+echo("Center");
 echo(center);
 
-* translate([ center[0]-0.5, 0, 0 ]) a_part([1,BASE_INNER[1],20]);
+// translate([ center[0]-0.5, 0, 0 ]) a_part([1,BASE_INNER[1],20]);
 
-*a_part(BASE_INNER);
+// a_part(BASE_INNER);
 
 translate(relays_at) a_part(RELAYS);
 translate(rpi_at) a_part(RPI);
@@ -164,9 +178,8 @@ translate([ relays_at[0]+RELAYS[0], relays_at[1], 0 ]) rotate([0,0,90]) corner_s
 
 translate([rpi_at[0], rpi_at[1], 0]) {
   translate(RPI_HOLE_1) standoff(STH, STANDOFF_R, STANDOFF_SCREW_R);
-  translate(RPI_HOLE_2) standoff(STH, STANDOFF_R, STANDOFF_SCREW_R);
+  #translate(RPI_HOLE_2) standoff(STH, STANDOFF_R, STANDOFF_SCREW_R);
 }
 
-translate([200,0,0]) zip_tie( ZIP_TIE_TONGUE );
 
 
