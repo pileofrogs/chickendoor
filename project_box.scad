@@ -1,6 +1,6 @@
 /*** Constants ***/
 ROOM = 5;  // space around all the parts
-RPI = [ 70, 100, 20 ];  // dimensions of a fictional R PI
+RPI = [ 70, 119.5, 20 ];  // dimensions of a fictional R PI
 RELAYS = [ 46, 32.5, 17 ];  // same for relay board
 FUDGE = 0.25;  // extra space for parts to fit
 WALL_THK = 2; // how thick the walls are
@@ -12,9 +12,8 @@ STH = 4.5+WALL_THK; // standoff height
 RPI_HOLE_1 = [45,21,0];
 
 RPI_HOLE_SPECS = [54-18-12.5,85.6-25.5-5,0];
-echo(RPI_HOLE_SPECS);
 
-RPI_HOLE_2 = [RPI_HOLE_1[0]-RPI_HOLE_SPECS[0],RPI_HOLE_1[1]+RPI_HOLE_SPECS[1],0];
+RPI_HOLE_2 = [RPI_HOLE_1[0]-RPI_HOLE_SPECS[0]+WALL_THK,RPI_HOLE_1[1]+RPI_HOLE_SPECS[1],0];
 
 /*
 NEED
@@ -33,7 +32,7 @@ WIRE_BUNDLE=(5+2+2+2)/2;
 
 $fn=100;
 
-BOX_INNER = [ bigger_of(RPI[0], RELAYS[0]) + 2*ROOM, RPI[1] + RELAYS[1] + 4*ROOM+2*WALL_THK , bigger_of(RPI[2],RELAYS[2])+STH+ROOM ];
+BOX_INNER = [ bigger_of(RPI[0], RELAYS[0]) + 2*ROOM, RPI[1] + RELAYS[1] + 4*ROOM+2*WALL_THK+2*STANDOFF_R , bigger_of(RPI[2],RELAYS[2])+STH+ROOM ];
 BOX_OUTER = [ BOX_INNER[0]+WALL_THK*2, BOX_INNER[1]+WALL_THK*2, BOX_INNER[2]+WALL_THK*2 ];
 
 BASE_INNER = [ BOX_INNER[0]-2*WALL_THK, BOX_INNER[1]-2*WALL_THK, BOX_INNER[2] ]; 
@@ -46,11 +45,11 @@ function bigger_of (thing1, thing2) = thing1>thing2 ? thing1 : thing2;
 
 module box_lid() {
 // box lid goes over project stuff
-  standoff_goes = [BOX_OUTER[0]/2, RPI[1]+2*ROOM+2*WALL_THK, -  WALL_THK/2];
+  standoff_goes = [BOX_OUTER[0]/2, RPI[1]+3*ROOM+STANDOFF_R-1, -  WALL_THK/2];
   difference() {
     cube(BOX_OUTER);
     union () {
-      translate([WALL_THK,WALL_THK, WALL_THK]) cube([ BOX_INNER[0], BOX_INNER[1], BOX_INNER[2]+WALL_THK*2]);
+      #translate([WALL_THK,WALL_THK, WALL_THK]) cube([ BOX_INNER[0], BOX_INNER[1], BOX_INNER[2]+WALL_THK*2]);
       translate(standoff_goes) cylinder( WALL_THK*2, FLANGE_SCREW_R, FLANGE_SCREW_R);
     }
     translate([standoff_goes[0],BOX_OUTER[1]+WALL_THK,BOX_OUTER[2]-WIRE_BUNDLE]) {
@@ -107,7 +106,7 @@ module screw_flange ( ) {
 
 module zip_tie (dims) {
   cube(dims);
-  #translate([-WALL_THK,0,0]) cube(WALL_THK);
+  translate([-WALL_THK,0,0]) cube(WALL_THK);
   translate([dims[0],0,0]) cube(WALL_THK);
   translate([dims[0],dims[1]-WALL_THK,0]) cube(WALL_THK);
   translate([-WALL_THK,dims[1]-WALL_THK,0]) cube(WALL_THK);
@@ -139,7 +138,7 @@ module a_part ( dimensions ) {
 
 to_the_right = BOX_OUTER[0]+FLANGE_R*2+3*WALL_THK;
 center = [BASE_INNER[0]/2, BASE_INNER[1]/2, BASE_INNER[2]/2];
-relays_at = [center[0]-RELAYS[0]/2, 3*ROOM + RPI[1], STH];
+relays_at = [center[0]-RELAYS[0]/2, 3*ROOM + RPI[1] + 2*STANDOFF_R, STH];
 rpi_at = [ center[0]-RPI[0]/2, ROOM, STH];
 relays_holders = [STH,STH,STH];
 
@@ -162,7 +161,7 @@ box_bottom();
 translate([to_the_right, -2*WALL_THK, 0]) box_lid();
 
 // Central Standoff Post
-translate([center[0], RPI[1]+2*ROOM, 0 ]) standoff (BOX_INNER[2]+WALL_THK,STANDOFF_R,STANDOFF_SCREW_R);
+translate([center[0], RPI[1]+2*ROOM+STANDOFF_R, 0 ]) standoff (BOX_INNER[2]+WALL_THK,STANDOFF_R,STANDOFF_SCREW_R);
 
 // Standoff Courner thingies for relay
 translate([ relays_at[0], relays_at[1], 0 ]) corner_standoff(relays_holders);
