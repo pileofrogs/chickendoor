@@ -58,11 +58,13 @@ module box_lid() {
       translate([-WIRE_BUNDLE,-3*WALL_THK,0]) cube([WIRE_BUNDLE*2,3*WALL_THK,WIRE_BUNDLE+1]);
     }
   } 
+  /*
   %translate([-100, standoff_goes[1], 0]) cube([200,0.1,20]);
   %translate([-100, BOX_OUTER[1], 0]) cube([200,0.1,20]);
   %translate([-100, BOX_OUTER[1]-WALL_THK, 0]) cube([200,0.1,20]);
   %translate([-100, WALL_THK, 0]) cube([200,0.1,20]);
   %translate([-100, 0, 0]) cube([200,0.1,20]);
+  */
 
 }
 
@@ -85,7 +87,7 @@ module box_bottom () {
     translate([BOX_OUTER[0], BOX_OUTER[1]-FLANGE_R*2, 0]) rotate([0,0,270]) screw_flange( );
     translate([BOX_OUTER[0], FLANGE_R*2, 0]) rotate([0,0,270]) screw_flange( );
     translate([xhalf-5, BOX_OUTER[1],0]) zip_tie ([10,10,WALL_THK]);
-    %translate([(xhalf-0.5), 0, 0 ]) cube([1,200,20]);
+    //%translate([(xhalf-0.5), 0, 0 ]) cube([1,200,20]);
   }
   
 }
@@ -104,10 +106,11 @@ module screw_flange ( ) {
 }
 
 module zip_tie (dims) {
-  difference() {
-    cube(dims);
-    translate([0,0,0]) cube(dims);
-  }
+  cube(dims);
+  #translate([-WALL_THK,0,0]) cube(WALL_THK);
+  translate([dims[0],0,0]) cube(WALL_THK);
+  translate([dims[0],dims[1]-WALL_THK,0]) cube(WALL_THK);
+  translate([-WALL_THK,dims[1]-WALL_THK,0]) cube(WALL_THK);
 }
 
 
@@ -140,7 +143,7 @@ relays_at = [center[0]-RELAYS[0]/2, 3*ROOM + RPI[1], STH];
 rpi_at = [ center[0]-RPI[0]/2, ROOM, STH];
 relays_holders = [STH,STH,STH];
 
-%translate([center[0]-0.5,0,0]) cube([1,200,20]);
+//%translate([center[0]-0.5,0,0]) cube([1,200,20]);
 
 echo(BASE_INNER);
 echo("Center");
@@ -159,7 +162,7 @@ box_bottom();
 translate([to_the_right, -2*WALL_THK, 0]) box_lid();
 
 // Central Standoff Post
-translate([center[0], RPI[1]+2*ROOM, 0]) standoff (BOX_INNER[2]-WALL_THK,STANDOFF_R,STANDOFF_SCREW_R);
+translate([center[0], RPI[1]+2*ROOM, 0 ]) standoff (BOX_INNER[2]+WALL_THK,STANDOFF_R,STANDOFF_SCREW_R);
 
 // Standoff Courner thingies for relay
 translate([ relays_at[0], relays_at[1], 0 ]) corner_standoff(relays_holders);
@@ -178,5 +181,5 @@ translate([rpi_at[0], rpi_at[1], 0]) {
   #translate(RPI_HOLE_2) standoff(STH, STANDOFF_R, STANDOFF_SCREW_R);
 }
 
-% box_lid();
+% translate([BOX_OUTER[0]-2*WALL_THK,-2*WALL_THK,BOX_OUTER[2]]) rotate([0,180,0]) box_lid();
 
