@@ -1,5 +1,4 @@
-project_box.stl
-screw_hole_sizer.scad
+*.stl
 *.swp
 state
 *.swo
