@@ -29,12 +29,10 @@ module ear () {
   difference () {
     union () {
       cylinder(width,circler,circler);
-      translate([0,-circler,0]) cube([upness,upness/2,width]);
-      translate([-circler,0,0]) cube([upness/2,upness,width]);
+      translate([-circler,0,0]) cube([2*circler,upness,width]);
     }
     translate([0,0,-1]) {
       cylinder(width+2,act_hole_r,act_hole_r);
-      translate([upness,-upness/2,0]) rotate([0,0,45]) cube([upness*2,upness*2,width+2]);
     }
   }
 }
