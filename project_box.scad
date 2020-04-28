@@ -1,4 +1,5 @@
 /*** Constants ***/
+LED_R = 3.2/2;
 ROOM = 5;  // space around all the parts
 RPI = [ 70, 119.5, 20 ];  // dimensions of a fictional R PI
 RELAYS = [ 46, 32.5, 17 ];  // same for relay board
@@ -49,13 +50,27 @@ module box_lid() {
   difference() {
     cube(BOX_OUTER);
     union () {
-      #translate([WALL_THK,WALL_THK, WALL_THK]) cube([ BOX_INNER[0], BOX_INNER[1], BOX_INNER[2]+WALL_THK*2]);
+      translate([WALL_THK,WALL_THK, WALL_THK]) cube([ BOX_INNER[0], BOX_INNER[1], BOX_INNER[2]+WALL_THK*2]);
       translate(standoff_goes) cylinder( WALL_THK*2, FLANGE_SCREW_R, FLANGE_SCREW_R);
     }
     translate([standoff_goes[0],BOX_OUTER[1]+WALL_THK,BOX_OUTER[2]-WIRE_BUNDLE]) {
       rotate([90,0,0]) cylinder(WALL_THK*3,WIRE_BUNDLE,WIRE_BUNDLE);
       translate([-WIRE_BUNDLE,-3*WALL_THK,0]) cube([WIRE_BUNDLE*2,3*WALL_THK,WIRE_BUNDLE+1]);
     }
+    // LED holes
+    translate([BOX_OUTER[0]/3,BOX_OUTER[1]/3,-WALL_THK]) #cylinder(WALL_THK*2,LED_R, LED_R);
+    translate([2*BOX_OUTER[0]/3,BOX_OUTER[1]/3,-WALL_THK]) #cylinder(WALL_THK*2,LED_R, LED_R);
+    // Labels
+    translate([2*BOX_OUTER[0]/3,BOX_OUTER[1]/3+LED_R*3 ,WALL_THK/4])
+       rotate([180,0,90])
+       linear_extrude(WALL_THK) 
+       text( str("OPEN"), size=5, halign="left", valign="center" );
+    translate([BOX_OUTER[0]/3,BOX_OUTER[1]/3+LED_R*3 ,WALL_THK/4])
+       rotate([180,0,90])
+       linear_extrude(WALL_THK) 
+       text( str("CLOSED"), size=5, halign="left", valign="center" );
+
+
   } 
   /*
   %translate([-100, standoff_goes[1], 0]) cube([200,0.1,20]);
@@ -177,7 +192,7 @@ translate([ relays_at[0]+RELAYS[0], relays_at[1], 0 ]) rotate([0,0,90]) corner_s
 
 translate([rpi_at[0], rpi_at[1], 0]) {
   translate(RPI_HOLE_1) standoff(STH, STANDOFF_R, STANDOFF_SCREW_R);
-  #translate(RPI_HOLE_2) standoff(STH, STANDOFF_R, STANDOFF_SCREW_R);
+  translate(RPI_HOLE_2) standoff(STH, STANDOFF_R, STANDOFF_SCREW_R);
 }
 
 % translate([BOX_OUTER[0]-2*WALL_THK,-2*WALL_THK,BOX_OUTER[2]]) rotate([0,180,0]) box_lid();
