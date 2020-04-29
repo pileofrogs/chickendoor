@@ -21,13 +21,22 @@ retracts, it opens the door.  The pressure sensor is basically a hinge connectin
   * thing for lid to plug into
 
 * lid
-  * leds 
-    * installation & waterproofing
+  * ~~leds installation & waterproofing~~
   * button
-    * connect to grnd of leds
-    * extra lead to connector thingy
-  * thing to base to plug into
+    * ~~connect to grnd of leds~~
+    * ~~extra lead to connector thingy~~
+    * when I get buttons in mail
+      * drill hole for button
+      * wire up button
+      * install button
+  * ~~thing to base to plug into~~
 
+* code
+  * everything to do with gpio
+    * play with mock pins
+    * LEDs
+    * button w pull-up 
+    * pressure sensor button w pull-up
   
 
 

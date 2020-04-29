@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 from random import random
+from gpiozero.pins.mock import MockFactory
 import gpiozero
 from time import sleep
 from pprint import pprint
@@ -10,6 +11,7 @@ from astral.geocoder import database, lookup
 from astral.sun import sun
 import astral
 import pytz
+
 
 # alias now() to datetime.datetime.now()
 now = datetime.datetime.now
@@ -26,6 +28,13 @@ mytz = pytz.timezone(here.timezone)
 epoch = datetime.datetime.fromtimestamp(0, tz=mytz)
 
 class Door (object):
+    device = None
+    button = None
+    pressure_sensor = None
+    open_led = None
+    close_led = None
+    open_relay = None
+    close_relay = None
     statefile = None
     state = 'UNKNOWN'
     prior_state = None
@@ -46,6 +55,8 @@ class Door (object):
             handle.close()
         except IOError:
             print(f"Failed to open state file {self.statefile}")
+        gpiozero.Device.pin_factory = MockFactory()
+
 
     def check_state(self):
         if self.state not in OK_STATES:
@@ -118,6 +129,8 @@ args = parser.parse_args()
 door = Door(args.state_file)
 
 door.check_state()
+
+door.button = gpiozero.Button(16)
 
 last_minute = 0
 last_press_at = epoch
