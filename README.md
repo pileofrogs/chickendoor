@@ -38,5 +38,11 @@ retracts, it opens the door.  The pressure sensor is basically a hinge connectin
     * button w pull-up 
     * pressure sensor button w pull-up
   
+# pins
 
+LEDs 4,17 
+Relays 27,22
+Buttons 23,24
+
+* * 
 

@@ -16,6 +16,14 @@ import pytz
 # alias now() to datetime.datetime.now()
 now = datetime.datetime.now
 
+# pin numbers
+LED_O = 4
+LED_C = 17 
+RELAY_O = 27
+RELAY_C = 22
+BUTTON = 23
+PRESSURE = 24
+
 TRANSITION_TIME = datetime.timedelta(seconds=2) 
 STATE_FILE = "/run/chickendoor.state"
 VALID_STATES = ('UNKNOWN','OPEN','CLOSED','OPENING','CLOSING','STOPPED')
@@ -48,6 +56,14 @@ class Door (object):
         self.statefile = state_file
         self.reverse_of = { 'CLOSING': self.open, 'CLOSED': self.open, 
             'OPENING':self.close, 'OPEN': self.close }
+        
+        self.button = gpiozero.Button(BUTTON)
+        self.pressure_sensor = gpiozero.Button(PRESSURE)
+        self.open_led = gpiozero.LED(LED_O)
+        self.close_led = gpiozero.LED(LED_C)
+        self.open_relay = gpiozero.OutputDevice(RELAY_O)
+        self.close_relay = gpiozero.OutputDevice(RELAY_C)
+        
         try:
             handle = open(self.statefile)
             self.set_state(handle.read().rstrip())
@@ -55,8 +71,6 @@ class Door (object):
             handle.close()
         except IOError:
             print(f"Failed to open state file {self.statefile}")
-        gpiozero.Device.pin_factory = MockFactory()
-
 
     def check_state(self):
         if self.state not in OK_STATES:
@@ -95,14 +109,24 @@ class Door (object):
         
     def open (self):
         print("Opening")
+        self.open_relay.on()
+        self.close_relay.off()
+        self.open_led.blink()
+        self.close_led.off()
         self.set_state('OPENING')
     
     def close (self):
         print("Closing")
+        self.open_relay.off()
+        self.close_relay.on()
         self.set_state('CLOSING')
+        self.close_led.blink()
+        self.open_led.off()
     
     def stop (self):
         print("Stop!")
+        self.open_relay.off()
+        self.close_relay.off()
         self.set_state('STOPPED')
 
     def update_state_file (self):
@@ -110,6 +134,11 @@ class Door (object):
             handle.write(self.state)
             handle.close()
 
+    def press_button (self):
+        last_press_at = tnow
+        if door.is_transitory():
+            door.stop()
+            sleep(0.5)
 
 def is_button_pressed ():
     if random() > 0.95:
