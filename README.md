@@ -11,32 +11,12 @@ retracts, it opens the door.  The pressure sensor is basically a hinge connectin
 
 ## TODO
 
-* pressure sensor
-  * hole for button wire (D'oh!)
-  * make button waterproof
-  * play with sensitivity
+* retry closing if we hit a chicken
+* poweroff
+* start on boot
+* config file for offsets
+* log to syslog
 
-* main box
-  * transistora anchored and insulated
-  * thing for lid to plug into
-
-* lid
-  * ~~leds installation & waterproofing~~
-  * button
-    * ~~connect to grnd of leds~~
-    * ~~extra lead to connector thingy~~
-    * when I get buttons in mail
-      * drill hole for button
-      * wire up button
-      * install button
-  * ~~thing to base to plug into~~
-
-* code
-  * everything to do with gpio
-    * play with mock pins
-    * LEDs
-    * button w pull-up 
-    * pressure sensor button w pull-up
   
 # pins
 
