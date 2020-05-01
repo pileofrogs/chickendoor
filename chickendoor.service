@@ -1,0 +1,16 @@
+
+[Unit]
+Description=Automatic Chicken Door Opener
+After=network.target
+ConditionPathExists=!/run/chickendoor_not_to_be_run
+
+[Service]
+EnvironementFile=/root/chickendor.env
+ExecStart=/root/chickendoor.py 
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=0
+
+[Install]
+WantedBy=multi-user.target
+Alias=door.service
