@@ -13,7 +13,6 @@ retracts, it opens the door.  The pressure sensor is basically a hinge connectin
 
 * retry closing if we hit a chicken
 * poweroff
-* start on boot
 * config file for offsets
 * log to syslog
 
