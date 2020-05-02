@@ -16,8 +16,17 @@ retracts, it opens the door.  The pressure sensor is basically a hinge connectin
 * config file for offsets
 * log to syslog
 
-  
-# pins
+## Lessons Leaned
+
+* The slop between the pins and the holes they go through really matters.  
+  Shutting the door firmly wihtout setting off the pressure sensor depends
+  on minimal slop.
+* setting one of the brackes a few inches off of the wall would really help.
+  As it is, the closed door is a straight line between them so there's very
+  little leverage keeping it closed and that means any slop translates into
+  a lot of wiggle in the door.
+
+# pins I used
 
 LEDs 4,17 
 Relays 27,22
